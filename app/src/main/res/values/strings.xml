@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CreditCards</string>
+    <string name="action_settings">Settings</string>
+    <string name="good_thru">GOOD\nTHRU</string>
+    <string name="network_titile">Network</string>
+    <string name="network_message">Check the internet connection, and try again.</string>
+</resources>
