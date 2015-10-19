@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
                     // Permission Granted
                 } else {
                     // Permission Denied
-                    Toast.makeText(MainActivity.this, "You need to allow read access to Files",
+                    Toast.makeText(MainActivity.this, getString(R.string.allow_read),
                             Toast.LENGTH_SHORT).show();
                     requestReadExternalStoragePermission();
                 }
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_CODE_ASK_WRITE_PERMISSIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 } else {
-                    Toast.makeText(MainActivity.this, "You need to allow write access to Files",
+                    Toast.makeText(MainActivity.this, getString(R.string.allow_write),
                             Toast.LENGTH_SHORT).show();
                     requestWriteExternalStoragePermission();
                 }

@@ -87,6 +87,7 @@ public class MainActivityFragment extends ListFragment {
     }
 
     private void setUpDataBaseFromJson(String jsonData) throws JSONException {
+
         JSONObject jMessage = new JSONObject(jsonData);
         mDatabaseHelper.deleteAllData();
         JSONArray jArr = jMessage.getJSONArray("results");
@@ -113,6 +114,7 @@ public class MainActivityFragment extends ListFragment {
             long updatedTime = Utils.parseDateTime(jCreditCard.getString("updated"),
                     "yyyy-MM-dd'T'HH:mm:ssZ");
             String guid = jCreditCard.getString("guid");
+            //get the card by the guid
             CreditCardCursor cursor = mDatabaseHelper.queryCardByGuid(guid);
             cursor.moveToFirst();
 
@@ -120,10 +122,7 @@ public class MainActivityFragment extends ListFragment {
 
                 //if the guid doesn't exists, delete the card from database
                 mDatabaseHelper.deleteCardByGuid(guid);
-
-                //update adapter
-                mCursor = mDatabaseHelper.queryEnabledCardsOrderByCreatedTime();
-                mAdapter.notifyDataSetChanged();
+                updateAdapter();
             } else if (updatedTime > cursor.getCard().getUpdatedTime()) {
 
                 //if the updated time changed, update the card
@@ -131,10 +130,7 @@ public class MainActivityFragment extends ListFragment {
                 setSomeCardInfo(card, jCreditCard);
                 card.setUpdatedTime(updatedTime);
                 mDatabaseHelper.updateCardByGuid(card);
-
-                //update adapter
-                mCursor = mDatabaseHelper.queryEnabledCardsOrderByCreatedTime();
-                mAdapter.notifyDataSetChanged();
+                updateAdapter();
             }
             cursor.close();
         }
@@ -217,6 +213,12 @@ public class MainActivityFragment extends ListFragment {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putBoolean(Preference.PREF_FIRST_TIME_START, false);
         editor.apply();
+    }
+
+    private void updateAdapter(){
+
+        mCursor = mDatabaseHelper.queryEnabledCardsOrderByCreatedTime();
+        mAdapter.notifyDataSetChanged();
     }
 
     private static class ViewHolder {

@@ -55,8 +55,7 @@ public class CreditCardDatabaseHelper extends SQLiteOpenHelper {
 
     public void deleteAllData() {
 
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_CARD, null, null);
+        getWritableDatabase().delete(TABLE_CARD, null, null);
     }
 
     public long insertCreditCard(CreditCard card) {
