@@ -5,7 +5,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,22 +20,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import coin.jianzhang.creditcards.utils.ImageLoader;
 import coin.jianzhang.creditcards.R;
 import coin.jianzhang.creditcards.constants.Constants;
 import coin.jianzhang.creditcards.constants.Preference;
 import coin.jianzhang.creditcards.database.CreditCardDatabaseHelper;
 import coin.jianzhang.creditcards.database.CreditCardDatabaseHelper.CreditCardCursor;
 import coin.jianzhang.creditcards.domainobjects.CreditCard;
+import coin.jianzhang.creditcards.loader.SQLiteCursorLoader;
 import coin.jianzhang.creditcards.network.WebUtil;
+import coin.jianzhang.creditcards.utils.ImageLoader;
 import coin.jianzhang.creditcards.utils.Utils;
 
 
-public class MainActivityFragment extends ListFragment {
+public class MainActivityFragment extends VisibleFragment implements LoaderCallbacks<Cursor> {
 
     private static final String TAG = "CreditCards";
     private ImageLoader mImageLoader;
-    private CreditCardDatabaseHelper mDatabaseHelper;
+    private static CreditCardDatabaseHelper mDatabaseHelper;
     private CreditCardCursor mCursor;
     private ProgressBar mProgressBar;
     private CreditCardCursorAdapter mAdapter;
@@ -45,6 +47,10 @@ public class MainActivityFragment extends ListFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        setRetainInstance(true);
+
+        getLoaderManager().initLoader(0, null, this);
 
         mImageLoader = new ImageLoader(getActivity());
         mDatabaseHelper = new CreditCardDatabaseHelper(getActivity());
@@ -68,7 +74,6 @@ public class MainActivityFragment extends ListFragment {
             }
         } else {
             //after first time, the database is already setup
-            setupListViewAdapter();
             if (WebUtil.networkConnected(getActivity())) {
                 UpdateDataTask updateDataTask = new UpdateDataTask();
                 updateDataTask.execute();
@@ -76,6 +81,25 @@ public class MainActivityFragment extends ListFragment {
                 WebUtil.showNetworkDialog(getActivity());
             }
         }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CardListCursorLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // create an adapter to point at this cursor
+        CreditCardCursorAdapter adapter = new CreditCardCursorAdapter(getActivity(),
+                (CreditCardCursor)cursor);
+        getListView().setAdapter(adapter);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // stop using the cursor (via the adapter)
+        setListAdapter(null);
     }
 
     @Override
@@ -119,12 +143,10 @@ public class MainActivityFragment extends ListFragment {
             cursor.moveToFirst();
 
             if (cursor.isAfterLast()) {
-
                 //if the guid doesn't exists, delete the card from database
                 mDatabaseHelper.deleteCardByGuid(guid);
                 updateAdapter();
             } else if (updatedTime > cursor.getCard().getUpdatedTime()) {
-
                 //if the updated time changed, update the card
                 CreditCard card = cursor.getCard();
                 setSomeCardInfo(card, jCreditCard);
@@ -219,6 +241,20 @@ public class MainActivityFragment extends ListFragment {
 
         mCursor = mDatabaseHelper.queryEnabledCardsOrderByCreatedTime();
         mAdapter.notifyDataSetChanged();
+    }
+
+    private static class CardListCursorLoader extends SQLiteCursorLoader {
+
+        public CardListCursorLoader(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected Cursor loadCursor() {
+            // query the list of runs
+            return mDatabaseHelper.queryEnabledCardsOrderByCreatedTime();
+        }
+
     }
 
     private static class ViewHolder {

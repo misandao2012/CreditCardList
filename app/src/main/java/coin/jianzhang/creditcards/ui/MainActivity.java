@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import coin.jianzhang.creditcards.R;
+import coin.jianzhang.creditcards.service.PollService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,9 +32,25 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.menu_item_toggle_polling) {
+            boolean shouldStartAlarm = !PollService.isServiceAlarmOn(this);
+            PollService.setServiceAlarm(this, shouldStartAlarm);
+            invalidateOptionsMenu();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+        if (PollService.isServiceAlarmOn(this)) {
+            toggleItem.setTitle(R.string.stop_polling);
+        } else {
+            toggleItem.setTitle(R.string.start_polling);
+        }
+        return true;
     }
 }
