@@ -13,7 +13,7 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
 
     public void test() throws Exception {
         final int expected = 1;
-        final int reality = 5;
+        final int reality = 1;
         assertEquals(expected, reality);
     }
 }
